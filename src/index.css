@@ -1,0 +1,492 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Leaflet map styles fix */
+.leaflet-container {
+  font-family: 'Inter', system-ui, sans-serif;
+  z-index: 1;
+}
+
+/* 
+  Design System: Government Analytics Dashboard
+  Professional Blue Theme with Visible Card Borders
+*/
+
+@layer base {
+  :root {
+    /* Government Blue Palette - Enhanced Blue Tones */
+    --background: 215 40% 95%;
+    --foreground: 220 30% 15%;
+
+    --card: 210 40% 99%;
+    --card-foreground: 220 30% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 30% 15%;
+
+    /* Deep Navy Primary */
+    --primary: 220 70% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 215 35% 92%;
+    --secondary-foreground: 220 30% 15%;
+
+    --muted: 215 30% 92%;
+    --muted-foreground: 220 20% 45%;
+
+    --accent: 200 80% 48%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Status Colors */
+    --success: 158 64% 40%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 45 93% 47%;
+    --warning-foreground: 0 0% 0%;
+
+    --info: 200 80% 48%;
+    --info-foreground: 0 0% 100%;
+
+    /* Government Blue Tints */
+    --gov-blue-50: 215 50% 96%;
+    --gov-blue-100: 215 50% 90%;
+    --gov-blue-200: 215 50% 80%;
+    --gov-blue-500: 220 70% 40%;
+    --gov-blue-600: 220 75% 32%;
+    --gov-blue-700: 220 80% 25%;
+
+    /* Teal Accent Tints */
+    --teal-50: 175 60% 95%;
+    --teal-100: 175 55% 85%;
+    --teal-500: 175 65% 38%;
+    --teal-600: 175 70% 30%;
+
+    /* Enhanced Blue Borders */
+    --border: 215 40% 80%;
+    --input: 215 35% 85%;
+    --ring: 220 70% 40%;
+
+    --radius: 0.5rem;
+
+    /* Chart Palette - Professional Government Colors */
+    --chart-1: 220 70% 40%;
+    --chart-2: 175 65% 38%;
+    --chart-3: 45 93% 47%;
+    --chart-4: 0 72% 51%;
+    --chart-5: 280 60% 50%;
+    --chart-6: 200 80% 48%;
+
+    --sidebar-background: 220 35% 15%;
+    --sidebar-foreground: 220 15% 92%;
+    --sidebar-primary: 200 80% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 35% 22%;
+    --sidebar-accent-foreground: 220 15% 92%;
+    --sidebar-border: 220 35% 25%;
+    --sidebar-ring: 200 80% 48%;
+  }
+
+  .dark {
+    --background: 220 35% 7%;
+    --foreground: 215 20% 95%;
+
+    --card: 220 35% 11%;
+    --card-foreground: 215 20% 95%;
+
+    --popover: 220 35% 12%;
+    --popover-foreground: 215 20% 95%;
+
+    --primary: 200 80% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 30% 16%;
+    --secondary-foreground: 215 20% 95%;
+
+    --muted: 220 30% 16%;
+    --muted-foreground: 215 20% 60%;
+
+    --accent: 200 80% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 158 64% 48%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 45 93% 55%;
+    --warning-foreground: 0 0% 0%;
+
+    --info: 200 80% 55%;
+    --info-foreground: 0 0% 100%;
+
+    --gov-blue-50: 220 35% 14%;
+    --gov-blue-100: 220 35% 18%;
+    --gov-blue-200: 220 40% 28%;
+    --gov-blue-500: 200 80% 55%;
+    --gov-blue-600: 200 75% 48%;
+    --gov-blue-700: 200 70% 42%;
+
+    --teal-50: 175 35% 14%;
+    --teal-100: 175 40% 20%;
+    --teal-500: 175 65% 48%;
+    --teal-600: 175 60% 42%;
+
+    --border: 220 35% 22%;
+    --input: 220 35% 20%;
+    --ring: 200 80% 55%;
+
+    --sidebar-background: 220 35% 5%;
+    --sidebar-foreground: 215 20% 92%;
+    --sidebar-primary: 200 80% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 35% 12%;
+    --sidebar-accent-foreground: 215 20% 92%;
+    --sidebar-border: 220 30% 15%;
+    --sidebar-ring: 200 80% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Apply fonts with hierarchy */
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Headings use Poppins */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', system-ui, sans-serif;
+    font-weight: 600;
+  }
+
+  /* Buttons and emphasized text use Poppins */
+  button, .btn, .font-heading {
+    font-family: 'Poppins', system-ui, sans-serif;
+  }
+
+  /* Cards and special containers */
+  .gov-card-header, .kpi-card, .data-table th {
+    font-family: 'Poppins', system-ui, sans-serif;
+  }
+
+  /* Numbers and metrics */
+  .number-display {
+    font-family: 'Poppins', system-ui, sans-serif;
+    font-weight: 700;
+  }
+}
+
+@layer components {
+  /* Government Card Styles - Enhanced Blue Border */
+  .gov-card {
+    @apply bg-card rounded-xl shadow-sm;
+    border: 1px solid hsl(215 50% 85%);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  .dark .gov-card {
+    border-color: hsl(220 40% 25%);
+  }
+
+  .gov-card:hover {
+    @apply shadow-lg;
+    border-color: hsl(220 60% 70%);
+    transform: translateY(-1px);
+  }
+
+  .dark .gov-card:hover {
+    border-color: hsl(200 70% 45%);
+  }
+
+  .gov-card-header {
+    @apply px-5 py-4 border-b bg-gradient-to-r from-primary/5 to-accent/5;
+    border-color: hsl(215 50% 88%);
+    font-family: 'Poppins', system-ui, sans-serif;
+  }
+
+  .dark .gov-card-header {
+    border-color: hsl(220 35% 22%);
+  }
+
+  .gov-card-title {
+    @apply text-sm font-semibold uppercase tracking-wide text-primary;
+    font-family: 'Poppins', system-ui, sans-serif;
+  }
+
+  /* KPI Card Styles - Blue Gradient */
+  .kpi-card {
+    @apply relative overflow-hidden rounded-xl shadow-sm;
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(215 40% 97%) 100%);
+    border: 1px solid hsl(215 50% 85%);
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  .dark .kpi-card {
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(220 35% 14%) 100%);
+    border-color: hsl(220 40% 25%);
+  }
+
+  .kpi-card::before {
+    content: '';
+    @apply absolute inset-0 opacity-0 transition-opacity duration-200;
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.08) 0%, hsl(var(--accent) / 0.05) 100%);
+  }
+
+  .kpi-card:hover {
+    border-color: hsl(220 60% 70%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px -5px hsl(220 70% 40% / 0.15);
+  }
+
+  .dark .kpi-card:hover {
+    border-color: hsl(200 70% 45%);
+    box-shadow: 0 8px 25px -5px hsl(200 80% 50% / 0.2);
+  }
+
+  .kpi-card:hover::before {
+    @apply opacity-100;
+  }
+
+  /* Status Badge Styles */
+  .status-member {
+    @apply bg-success/10 text-success border-success/30;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  .status-non-member {
+    @apply bg-muted text-muted-foreground border-border;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  /* Data Table Styles */
+  .data-table {
+    @apply w-full text-sm;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  .data-table thead {
+    @apply sticky top-0;
+    background: linear-gradient(180deg, hsl(215 40% 95%) 0%, hsl(215 35% 93%) 100%);
+  }
+
+  .dark .data-table thead {
+    background: linear-gradient(180deg, hsl(220 35% 14%) 0%, hsl(220 35% 12%) 100%);
+  }
+
+  .data-table th {
+    @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-primary;
+    font-family: 'Poppins', system-ui, sans-serif;
+  }
+
+  .data-table td {
+    @apply px-4 py-3;
+    border-bottom: 1px solid hsl(215 40% 90%);
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  .dark .data-table td {
+    border-color: hsl(220 35% 20%);
+  }
+
+  .data-table tbody tr {
+    @apply transition-colors duration-150;
+  }
+
+  .data-table tbody tr:hover {
+    background: hsl(215 50% 96%);
+  }
+
+  .dark .data-table tbody tr:hover {
+    background: hsl(220 35% 15%);
+  }
+
+  /* Chart Container */
+  .chart-wrapper {
+    @apply w-full h-full;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  .chart-wrapper .recharts-wrapper {
+    @apply !w-full;
+  }
+
+  /* Glass Panel - Enhanced Blue Tint */
+  .glass-panel {
+    @apply backdrop-blur-xl;
+    background: linear-gradient(180deg, hsl(210 50% 99% / 0.95) 0%, hsl(215 40% 98% / 0.9) 100%);
+    border-bottom: 1px solid hsl(215 50% 88%);
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  .dark .glass-panel {
+    background: linear-gradient(180deg, hsl(220 35% 10% / 0.95) 0%, hsl(220 35% 8% / 0.9) 100%);
+    border-color: hsl(220 35% 20%);
+  }
+
+  /* Blue Gradient Utility */
+  .bg-blue-gradient {
+    background: linear-gradient(135deg, hsl(220 70% 40%) 0%, hsl(200 80% 48%) 100%);
+    font-family: 'Poppins', system-ui, sans-serif;
+  }
+
+  /* Glass Blue Effect */
+  .glass-blue {
+    @apply backdrop-blur-lg;
+    background: linear-gradient(135deg, hsl(215 50% 97% / 0.9) 0%, hsl(210 45% 96% / 0.85) 100%);
+    border: 1px solid hsl(215 50% 85%);
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  .dark .glass-blue {
+    background: linear-gradient(135deg, hsl(220 35% 12% / 0.9) 0%, hsl(220 35% 10% / 0.85) 100%);
+    border-color: hsl(220 40% 25%);
+  }
+
+  /* Filter Panel Styles */
+  .filter-panel {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  .filter-panel .filter-header {
+    font-family: 'Poppins', system-ui, sans-serif;
+  }
+
+  /* Button Styles */
+  .btn {
+    font-family: 'Poppins', system-ui, sans-serif;
+    font-weight: 500;
+  }
+
+  /* Badge Styles */
+  .badge {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  /* Animated entrance */
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Stagger animation */
+  .stagger-1 { animation-delay: 0.05s; }
+  .stagger-2 { animation-delay: 0.1s; }
+  .stagger-3 { animation-delay: 0.15s; }
+  .stagger-4 { animation-delay: 0.2s; }
+  .stagger-5 { animation-delay: 0.25s; }
+  .stagger-6 { animation-delay: 0.3s; }
+
+  /* Shimmer skeleton */
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  .skeleton-shimmer {
+    @apply relative overflow-hidden rounded;
+    background: linear-gradient(
+      90deg,
+      hsl(215 40% 92%) 0%,
+      hsl(215 35% 88%) 50%,
+      hsl(215 40% 92%) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  .dark .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(220 35% 15%) 0%,
+      hsl(220 35% 20%) 50%,
+      hsl(220 35% 15%) 100%
+    );
+  }
+
+  /* Gradient text */
+  .text-gradient-primary {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+    font-family: 'Poppins', system-ui, sans-serif;
+  }
+
+  /* Number highlight */
+  .number-display {
+    @apply font-bold tabular-nums tracking-tight;
+    font-feature-settings: 'tnum' on, 'lnum' on;
+    font-family: 'Poppins', system-ui, sans-serif;
+  }
+
+  /* Font utility classes */
+  .font-poppins {
+    font-family: 'Poppins', system-ui, sans-serif;
+  }
+
+  .font-inter {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  /* Font weights for Poppins */
+  .font-poppins-light { font-weight: 300; }
+  .font-poppins-regular { font-weight: 400; }
+  .font-poppins-medium { font-weight: 500; }
+  .font-poppins-semibold { font-weight: 600; }
+  .font-poppins-bold { font-weight: 700; }
+  .font-poppins-extrabold { font-weight: 800; }
+
+  /* Font weights for Inter */
+  .font-inter-light { font-weight: 300; }
+  .font-inter-regular { font-weight: 400; }
+  .font-inter-medium { font-weight: 500; }
+  .font-inter-semibold { font-weight: 600; }
+  .font-inter-bold { font-weight: 700; }
+}
+
+/* Additional font fixes for form elements */
+input, textarea, select {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Ensure dropdowns and popovers use the right font */
+[data-radix-popper-content-wrapper],
+[role="dialog"],
+[role="menu"],
+[role="listbox"] {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Headings with specific weights */
+h1 { font-weight: 700; }
+h2 { font-weight: 600; }
+h3 { font-weight: 600; }
+h4 { font-weight: 600; }
+h5 { font-weight: 500; }
+h6 { font-weight: 500; }
