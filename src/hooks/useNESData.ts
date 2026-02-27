@@ -195,7 +195,7 @@ export function useNESData() {
     };
 
     const [
-      state, region, category, program, organization, sso,
+      state, category, program, organization, sso,
       membershipStatus, targetStatus, timeOfDay, ageGroup, quarter, month,
     ] = await Promise.all([
       distinct('state_name',       'state_name',       "AND state_name NOT IN ('?','Unknown')"),
