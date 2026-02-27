@@ -73,11 +73,11 @@ class DuckDBManager {
     return this.conn;
   }
 
-  async query<T = any>(sql: string): Promise<T[]> {
+  async query<T = Record<string, unknown>>(sql: string): Promise<T[]> {
     const conn = await this.getConnection();
     const result = await conn.query(sql);
     return result.toArray().map(row => {
-  const obj = row.toJSON() as any;
+  const obj = row.toJSON() as Record<string, unknown>;
 
   // Convert all BigInt fields to Number
   for (const key in obj) {
@@ -409,7 +409,7 @@ export function useNESData() {
     };
     if (!dataLoaded) return empty;
     try {
-      const [r] = await dbManager.current.query<any>(`
+      const [r] = await dbManager.current.query<Record<string, number>>(`
         SELECT
           COUNT(DISTINCT participant_id)    AS totalParticipants,
           COUNT(DISTINCT member_id)         AS uniqueMembers,
@@ -487,7 +487,7 @@ export function useNESData() {
     `);
   }, [dataLoaded, filters]);
 
-  const executeQuery = useCallback(async <T = any>(sql: string): Promise<T[]> => {
+  const executeQuery = useCallback(async <T = Record<string, unknown>>(sql: string): Promise<T[]> => {
     if (!dataLoaded) return [];
     return dbManager.current.query<T>(sql);
   }, [dataLoaded]);

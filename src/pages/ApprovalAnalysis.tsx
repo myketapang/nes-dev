@@ -112,7 +112,14 @@ const GradientDefs = () => (
 );
 
 // Enhanced custom tooltip with proper z-index
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface TooltipPayloadEntry {
+  color: string;
+  name: string;
+  value: number;
+  payload: { requestApproval: number; submitted: number; efficiency?: number; fullName?: string };
+}
+
+const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: TooltipPayloadEntry[]; label?: string }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-card border border-border/50 rounded-lg p-4 shadow-2xl backdrop-blur-sm z-[100] relative">
@@ -120,10 +127,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
           {label || payload[0].payload?.fullName || payload[0].name}
         </p>
         <div className="space-y-2">
-          {payload.map((entry: any, index: number) => {
-            const total = entry.payload?.requestApproval + entry.payload?.submitted;
-            const percentage = total > 0 ? Math.round((entry.value / total) * 100) : 0;
-            
+          {payload.map((entry: TooltipPayloadEntry, index: number) => {
             return (
               <div key={index} className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
