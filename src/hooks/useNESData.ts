@@ -45,11 +45,10 @@ class DuckDBManager {
         this.conn = await this.db.connect();
 
         // ── Enable HTTP client so DuckDB can fetch S3 URLs directly ──────────
-        await this.conn.query(`
-          INSTALL httpfs;
-          LOAD httpfs;
-          SET force_download=true;
-        `);
+        // Each statement must be a separate query() call in DuckDB-WASM
+        await this.conn.query(`INSTALL httpfs`);
+        await this.conn.query(`LOAD httpfs`);
+        await this.conn.query(`SET force_download=true`);
 
         this.initialized = true;
         console.log('DuckDB-WASM ready');
@@ -76,18 +75,26 @@ class DuckDBManager {
   async query<T = Record<string, unknown>>(sql: string): Promise<T[]> {
     const conn = await this.getConnection();
     const result = await conn.query(sql);
-    return result.toArray().map(row => {
-  const obj = row.toJSON() as Record<string, unknown>;
+    // Arrow 17: Table.toArray() returns [...this] — an Array of StructRow proxies.
+    // Guard defensively in case the result shape is unexpected.
+    const rows = result?.toArray?.() ?? [];
+    return rows.map((row: unknown) => {
+      // StructRow has toJSON() → plain JS object; fall back gracefully
+      const rawObj =
+        row != null && typeof (row as { toJSON?: unknown }).toJSON === 'function'
+          ? (row as { toJSON: () => Record<string, unknown> }).toJSON()
+          : (row as Record<string, unknown>);
+      const obj: Record<string, unknown> = rawObj ?? {};
 
-  // Convert all BigInt fields to Number
-  for (const key in obj) {
-    if (typeof obj[key] === 'bigint') {
-      obj[key] = Number(obj[key]);
-    }
-  }
+      // Convert BigInt fields to Number (Arrow returns Int64 as bigint)
+      for (const key in obj) {
+        if (typeof obj[key] === 'bigint') {
+          obj[key] = Number(obj[key]);
+        }
+      }
 
-  return obj as T;
-});
+      return obj as T;
+    });
   }
 
   async execute(sql: string): Promise<void> {
@@ -101,7 +108,7 @@ class DuckDBManager {
         `SELECT COUNT(*) as count FROM information_schema.tables
          WHERE table_name = '${name}'`,
       );
-      return rows.length > 0 && rows[0].count > 0;
+      return rows.length > 0 && (rows[0].count ?? 0) > 0;
     } catch {
       return false;
     }
@@ -124,7 +131,7 @@ function buildWhereClause(filters: NESFilters): string {
   const cond: string[] = [];
 
   const multi = (col: string, vals: string[]) => {
-    if (!vals.length || (vals.length === 1 && vals[0] === 'All')) return;
+    if (!vals?.length || (vals.length === 1 && vals[0] === 'All')) return;
     const list = vals.map(v => `'${escapeSQLString(v)}'`).join(', ');
     cond.push(`${col} IN (${list})`);
   };
@@ -142,7 +149,7 @@ function buildWhereClause(filters: NESFilters): string {
   multi('event_quarter',     filters.quarter);
   multi('event_month_name',  filters.month);
 
-  if (filters.year.length && !(filters.year.length === 1 && filters.year[0] === 'All')) {
+  if (filters.year?.length && !(filters.year.length === 1 && filters.year[0] === 'All')) {
     cond.push(`event_year IN (${filters.year.join(', ')})`);
   }
   if (filters.dateStart) cond.push(`parsed_event_date >= '${escapeSQLString(filters.dateStart)}'`);
@@ -184,16 +191,23 @@ export function useNESData() {
   const loadFilterOptions = useCallback(async () => {
     const db = dbManager.current;
 
+    // Safely query distinct values for a column; returns [] on any error
     const distinct = async (col: string, orderBy = col, extra = '') => {
-      const rows = await db.query<{ value: string | number }>(
-        `SELECT DISTINCT ${col} as value FROM nes_data
-         WHERE ${col} IS NOT NULL AND CAST(${col} AS VARCHAR) != ''
-         ${extra}
-         ORDER BY ${orderBy}`,
-      );
-      return rows.map(r => ({ value: String(r.value), label: String(r.value) }));
+      try {
+        const rows = await db.query<{ value: string | number }>(
+          `SELECT DISTINCT ${col} as value FROM nes_data
+           WHERE ${col} IS NOT NULL AND CAST(${col} AS VARCHAR) != ''
+           ${extra}
+           ORDER BY ${orderBy}`,
+        );
+        return (rows ?? []).map(r => ({ value: String(r.value ?? ''), label: String(r.value ?? '') }));
+      } catch (e) {
+        console.warn(`distinct(${col}) failed:`, e);
+        return [];
+      }
     };
 
+    // Run all filter queries in parallel (11 items, 11 destructured variables)
     const [
       state, category, program, organization, sso,
       membershipStatus, targetStatus, timeOfDay, ageGroup, quarter, month,
@@ -216,15 +230,25 @@ export function useNESData() {
       `SELECT DISTINCT event_year as value FROM nes_data
        WHERE event_year IS NOT NULL ORDER BY event_year DESC`,
     );
-    const yearOptions = years.map(y => ({ value: String(y.value), label: String(y.value) }));
+    const yearOptions = (years ?? []).map(y => ({ value: String(y.value ?? ''), label: String(y.value ?? '') }));
 
     setFilterOptions({
-      state, region: [], category, program, organization, sso,
-      membershipStatus, targetStatus, timeOfDay, ageGroup, quarter, month,
-      year: yearOptions,
+      state:  state  ?? [],
+      region: [],
+      category: category ?? [],
+      program:  program  ?? [],
+      organization: organization ?? [],
+      sso:  sso  ?? [],
+      membershipStatus: membershipStatus ?? [],
+      targetStatus:     targetStatus     ?? [],
+      timeOfDay: timeOfDay ?? [],
+      ageGroup:  ageGroup  ?? [],
+      quarter:   quarter   ?? [],
+      month:     month     ?? [],
+      year:      yearOptions,
     });
     setAvailableYears(yearOptions.map(y => y.value));
-    setAvailableMonths(month.map(m => m.value));
+    setAvailableMonths((month ?? []).map(m => m.value));
   }, []);
 
   // ── Apply filters ─────────────────────────────────────────────────────────
@@ -238,7 +262,7 @@ export function useNESData() {
         ORDER BY parsed_event_date DESC, event_id
         LIMIT 2000
       `);
-      setFilteredData(rows);
+      setFilteredData(rows ?? []);
     } catch (err) {
       console.error('applyFilters error', err);
     }
@@ -270,9 +294,10 @@ export function useNESData() {
       const exists = await db.tableExists('nes_data');
       if (!forceRefresh && exists) {
         console.log('nes_data already in DuckDB — skipping download');
-        const [{ total }] = await db.query<{ total: number }>(
+        const countRows = await db.query<{ total: number }>(
           'SELECT COUNT(*) as total FROM nes_data',
         );
+        const total = countRows[0]?.total ?? 0;
         setRecordCount(total);
         setDataLoaded(true);
         await loadFilterOptions();
@@ -326,9 +351,10 @@ export function useNESData() {
         );
       }
 
-      const [{ total }] = await db.query<{ total: number }>(
+      const countRows = await db.query<{ total: number }>(
         'SELECT COUNT(*) as total FROM nes_data',
       );
+      const total = countRows[0]?.total ?? 0;
       console.log(`Loaded ${total.toLocaleString()} records`);
       setRecordCount(total);
       setDataLoaded(true);
@@ -394,10 +420,10 @@ export function useNESData() {
   const getFilteredCount = useCallback(async (): Promise<number> => {
     if (!dataLoaded) return 0;
     try {
-      const [{ total }] = await dbManager.current.query<{ total: number }>(
+      const rows = await dbManager.current.query<{ total: number }>(
         `SELECT COUNT(*) as total FROM nes_data ${buildWhereClause(filters)}`,
       );
-      return total;
+      return rows[0]?.total ?? 0;
     } catch { return 0; }
   }, [dataLoaded, filters]);
 
@@ -409,7 +435,7 @@ export function useNESData() {
     };
     if (!dataLoaded) return empty;
     try {
-      const [r] = await dbManager.current.query<Record<string, number>>(`
+      const rows = await dbManager.current.query<Record<string, number>>(`
         SELECT
           COUNT(DISTINCT participant_id)    AS totalParticipants,
           COUNT(DISTINCT member_id)         AS uniqueMembers,
@@ -428,17 +454,19 @@ export function useNESData() {
         FROM nes_data
         ${buildWhereClause(filters)}
       `);
+      const r = rows[0];
+      if (!r) return empty;
       return {
         totalParticipants:    r.totalParticipants    ?? 0,
         uniqueMembers:        r.uniqueMembers        ?? 0,
         totalEvents:          r.totalEvents          ?? 0,
         totalNadi:            r.totalNadi            ?? 0,
-        avgAttendanceRate:    +parseFloat(r.avgAttendanceRate    ?? 0).toFixed(1),
-        avgTargetAchievement: +parseFloat(r.avgTargetAchievement ?? 0).toFixed(1),
-        totalNewMembers:      Math.round(r.totalNewMembers        ?? 0),
-        avgParticipantAge:    +parseFloat(r.avgParticipantAge    ?? 0).toFixed(1),
-        malePercent:          +parseFloat(r.malePercent          ?? 0).toFixed(1),
-        femalePercent:        +parseFloat(r.femalePercent        ?? 0).toFixed(1),
+        avgAttendanceRate:    +parseFloat(String(r.avgAttendanceRate    ?? 0)).toFixed(1),
+        avgTargetAchievement: +parseFloat(String(r.avgTargetAchievement ?? 0)).toFixed(1),
+        totalNewMembers:      Math.round(r.totalNewMembers ?? 0),
+        avgParticipantAge:    +parseFloat(String(r.avgParticipantAge    ?? 0)).toFixed(1),
+        malePercent:          +parseFloat(String(r.malePercent          ?? 0)).toFixed(1),
+        femalePercent:        +parseFloat(String(r.femalePercent        ?? 0)).toFixed(1),
       };
     } catch (err) {
       console.error('calculateKPIs error', err);
@@ -526,7 +554,7 @@ export function useNESData() {
     ];
     let n = keys.filter(k => {
       const v = filters[k] as string[];
-      return v.length > 0 && !(v.length === 1 && v[0] === 'All');
+      return v?.length > 0 && !(v.length === 1 && v[0] === 'All');
     }).length;
     if (filters.dateStart || filters.dateEnd) n++;
     return n;
