@@ -124,9 +124,9 @@ function preprocessData(data: Record<string, unknown>[]): MaintenanceTicket[] {
             const rawValue = item[original];
             if (typeof rawValue === 'string') {
               const actions = JSON.parse(rawValue);
-              preppedItem.maintenance_actions = actions.map((action: any) => ({
+              preppedItem.maintenance_actions = actions.map((action: Record<string, unknown>) => ({
                 ...action,
-                files: action.files?.map((file: string) => {
+                files: (action.files as string[] | undefined)?.map((file: string) => {
                   if (file && !file.startsWith('http')) {
                     const cleanedFile = cleanFileName(file);
                     const encodedFilename = encodeURIComponent(cleanedFile);
@@ -136,9 +136,9 @@ function preprocessData(data: Record<string, unknown>[]): MaintenanceTicket[] {
                 }) || []
               }));
             } else if (Array.isArray(rawValue)) {
-              preppedItem.maintenance_actions = rawValue.map((action: any) => ({
+              preppedItem.maintenance_actions = rawValue.map((action: Record<string, unknown>) => ({
                 ...action,
-                files: action.files?.map((file: string) => {
+                files: (action.files as string[] | undefined)?.map((file: string) => {
                   if (file && !file.startsWith('http')) {
                     const cleanedFile = cleanFileName(file);
                     const encodedFilename = encodeURIComponent(cleanedFile);
